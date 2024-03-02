@@ -5,7 +5,7 @@ import { RouterView } from 'vue-router'
 <template>
   <div
     class="absolute inset-0 px-12 py-10 md:py-3 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
-    <div class="max-w-screen-sm my-10 mx-auto shadow-2xl">
+    <div class="max-w-screen-sm md:my-2 lg:my-16 mx-auto shadow-2xl rounded-xl">
       <form>
         <!-- Card -->
         <div class="bg-white rounded-xl shadow dark:bg-slate-900">
@@ -14,7 +14,7 @@ import { RouterView } from 'vue-router'
           </div>
 
           <!-- Card Section -->
-          <div class="pt-0 p-4 sm:pt-0 sm:p-7">
+          <div class="pt-0 p-4 sm:pt-0 sm:p-7 rounded-xl">
             <!-- Grid -->
             <div class="space-y-4 sm:space-y-6">
               <div>
