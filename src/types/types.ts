@@ -26,3 +26,14 @@ export interface ProductInfo {
   quantity: number
   unit: string
 }
+
+export interface OrderData {
+  id: number,
+  full_name: string,
+  phone_number: string,
+  product_name: string,
+  product_unit: string,
+  amount: number,
+  quantity: number,
+  created_at: string,
+}
