@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AddProductModel from '@/components/Home/AddProductModal.vue'
-import { reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import vueDebounce from 'vue-debounce'
 import endpoint from '@/api/resources/endpoint'
 
@@ -17,7 +17,7 @@ interface OrderInfo {
 
 interface ProductInfo {
   name: string
-  price: number
+  price: number|string
   quantity: number
   unit: string
 }
@@ -70,6 +70,35 @@ watch(fullNameFetched, (value) => {
     orderInfo.full_name.data = ''
   }
 })
+
+watchEffect(() => {
+  if (products.value.length > 0) {
+    // loop through products and calculate the total amount
+    let total = 0;
+    products.value.map((product) => {
+      total += parseInt(product.price.toString())
+    })
+    orderInfo.amount = total
+  } else {
+    orderInfo.amount = 0
+  }
+})
+
+const amountFormatted = computed(() => {
+  return orderInfo.amount.toLocaleString('en-US');
+})
+
+// format price of products to currency by filtering through the products, but keep the number type
+const productsFormatted = computed(() => {
+  return products.value.map((product) => {
+    return {
+      ...product,
+      price: parseInt(product.price.toString()).toLocaleString('en-US')
+    }
+  })
+})
+
+
 </script>
 
 <template>
@@ -119,7 +148,7 @@ watch(fullNameFetched, (value) => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="product, key in products" :key="key" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+          <tr v-for="product, key in productsFormatted" :key="key" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
               {{ product.name }}
             </th>
@@ -127,7 +156,7 @@ watch(fullNameFetched, (value) => {
               {{ product.quantity }} {{ product.unit }}
             </td>
             <td class="px-6 py-4">
-              {{ product.price }}
+                {{ product.price }}
             </td>
             <td class="px-6 py-4 flex justify-center items-center">
               <button @click="removeProduct(product)" class="font-medium text-red-600 dark:text-red-500 hover:underline">
@@ -165,9 +194,9 @@ watch(fullNameFetched, (value) => {
         Tổng tiền
       </label>
 
-      <input id="amount" type="text" v-model="orderInfo.amount"
+      <input id="amount" type="text" v-model="amountFormatted"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-        placeholder="Nhập tổng tiền" />
+        placeholder="Nhập tổng tiền" :disabled="products.length>0" />
     </div>
 
     <div class="mt-5 flex justify-center gap-x-2">
