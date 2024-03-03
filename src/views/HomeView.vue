@@ -3,9 +3,14 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import vueDebounce from 'vue-debounce'
 import endpoint from '@/api/resources/endpoint'
-import {type OrderInfo, type ProductInfo, type Order, type BasicOrder} from '@/types'
+import { type OrderInfo, type ProductInfo, type Order, type BasicOrder } from '@/types'
+import {useToast} from 'vue-toast-notification';
 
 const vDebounce = vueDebounce({ lock: true })
+
+const $toast = useToast({
+  position: 'top'
+});
 
 const orderInit = {
   phone_number: '',
@@ -123,6 +128,9 @@ watchEffect(() => {
 
 const amountFormatted = computed({
   get: () => {
+    if (orderInfo.amount === 0) {
+      return ''
+    }
     return orderInfo.amount.toLocaleString('en-US')
   },
   set: (value: string) => {
@@ -144,7 +152,13 @@ const productsFormatted = computed(() => {
 const submitOrder = async (order: Order | BasicOrder) => {
   const response = await endpoint.storeOrder(order)
   if (response.status === 200) {
+    $toast.success('Tích điểm thành công 🎉');
     resetAll()
+  } else if (response.status === 500) {
+    $toast.error('Có lỗi xảy ra, vui lòng thử lại!')
+  } else {
+    const data = await response.json()
+    $toast.error(data.message.message)
   }
 }
 
