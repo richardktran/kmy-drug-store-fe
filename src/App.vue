@@ -4,9 +4,9 @@ import { RouterView } from 'vue-router'
 
 <template>
   <div
-    class="absolute inset-0 px-12 py-10 md:py-3 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"
+    class="absolute inset-0 px-5 py-10 sm:py-0 sm:px-12 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]"
   >
-    <div class="max-w-screen-sm md:my-2 lg:my-16 mx-auto shadow-2xl rounded-xl">
+    <div class="max-w-screen-xl md:my-2 lg:my-16 mx-auto shadow-2xl rounded-xl">
       <!-- Card -->
       <div class="bg-white rounded-xl shadow dark:bg-slate-900">
         <div
