@@ -3,37 +3,74 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import vueDebounce from 'vue-debounce'
 import endpoint from '@/api/resources/endpoint'
+import {type OrderInfo, type ProductInfo, type Order, type BasicOrder} from '@/types'
 
 const vDebounce = vueDebounce({ lock: true })
 
-interface OrderInfo {
-  phone_number: string
-  full_name: {
-    isLoading: boolean
-    data: string
-  }
-  amount: number
-}
-
-interface ProductInfo {
-  name: string
-  price: number|string
-  quantity: number
-  unit: string
-}
-
-const orderInfo: OrderInfo = reactive({
+const orderInit = {
   phone_number: '',
   full_name: {
     isLoading: false,
     data: ''
   },
   amount: 0
-})
+}
+
+let orderInfo: OrderInfo = reactive({...orderInit})
 
 let products = ref<ProductInfo[]>([])
 
 let fullNameFetched = ref('')
+
+const validateErrors = ref({
+  phone_number: '',
+  full_name: '',
+  amount: ''
+})
+
+const validate = () => {
+  let pass = true
+  if (orderInfo.phone_number.length < 10) {
+    validateErrors.value.phone_number = 'Số điện thoại không hợp lệ'
+    pass = false
+  }
+
+  if (orderInfo.full_name.data.length < 1 && fullNameFetched.value.length < 1) {
+    validateErrors.value.full_name = 'Tên khách hàng không được để trống'
+    pass = false
+  }
+
+  if (orderInfo.amount == 0) {
+    validateErrors.value.amount = 'Tổng tiền phải lớn hơn 0';
+    pass = false
+  }
+
+  return pass
+}
+
+const resetValidateErrors = () => {
+  validateErrors.value = {
+    phone_number: '',
+    full_name: '',
+    amount: ''
+  }
+}
+
+const resetAll = () => {
+  resetValidateErrors();
+  orderInfo.phone_number = ''
+  orderInfo.full_name.data = ''
+  orderInfo.full_name.isLoading = false
+  orderInfo.amount = 0
+  products.value = []
+  fullNameFetched.value = ''
+
+  // reset the form
+  const form = document.querySelector('form')
+  if (form) {
+    form.reset()
+  }
+}
 
 const fetchFullName = async () => {
   if (orderInfo.phone_number.length >= 10) {
@@ -84,8 +121,14 @@ watchEffect(() => {
   }
 })
 
-const amountFormatted = computed(() => {
-  return orderInfo.amount.toLocaleString('en-US');
+const amountFormatted = computed({
+  get: () => {
+    return orderInfo.amount.toLocaleString('en-US')
+  },
+  set: (value: string) => {
+    orderInfo.amount = parseInt(value.replace(/,/g, ''))
+  }
+
 })
 
 // format price of products to currency by filtering through the products, but keep the number type
@@ -98,11 +141,50 @@ const productsFormatted = computed(() => {
   })
 })
 
+const submitOrder = async (order: Order | BasicOrder) => {
+  const response = await endpoint.storeOrder(order)
+  if (response.status === 200) {
+    resetAll()
+  }
+}
+
+const storeOrder = async () => {
+  resetValidateErrors()
+  
+  if (!validate()) {
+    return
+  }
+
+  if (products.value.length > 0) {
+    products.value.map(async (product) => {
+      const order: Order = {
+        phone_number: orderInfo.phone_number,
+        full_name: orderInfo.full_name.data,
+        product_name: product.name,
+        quantity: parseInt(product.quantity.toString()),
+        unit: product.unit,
+        amount: parseInt(product.price.toString()),
+      }
+
+      await submitOrder(order)
+    })
+  } else {
+    const order: BasicOrder = {
+      phone_number: orderInfo.phone_number,
+      full_name: orderInfo.full_name.data,
+      amount: orderInfo.amount,
+    }
+
+    await submitOrder(order)
+  }
+  
+}
+
 
 </script>
 
 <template>
-  <div>
+  <form @submit.prevent="storeOrder">
     <div class="space-y-2">
       <label for="phone_number" class="inline-block text-sm font-medium text-gray-800 mt-2.5 dark:text-gray-200">
         Số điện thoại
@@ -111,6 +193,10 @@ const productsFormatted = computed(() => {
       <input id="phone_number" type="text" v-model="orderInfo.phone_number" v-debounce:500ms="fetchFullName"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
         placeholder="Nhập số điện thoại" />
+      
+    </div>
+    <div v-if="validateErrors.phone_number.length>0" class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+      {{ validateErrors.phone_number }}
     </div>
 
     <div class="space-y-2 mb-4">
@@ -124,7 +210,9 @@ const productsFormatted = computed(() => {
         :disabled="fullNameFetched.length > 0" />
     </div>
 
-
+    <div v-if="validateErrors.full_name.length>0" class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+      {{ validateErrors.full_name }}
+    </div>
 
     <div v-if="products.length>0" class="relative overflow-x-auto">
       <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -199,8 +287,12 @@ const productsFormatted = computed(() => {
         placeholder="Nhập tổng tiền" :disabled="products.length>0" />
     </div>
 
+    <div v-if="validateErrors.amount.length>0" class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+      {{ validateErrors.amount }}
+    </div>
+
     <div class="mt-5 flex justify-center gap-x-2">
-      <button type="button"
+      <button type="submit"
         class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
         Tích điểm
       </button>
@@ -212,7 +304,7 @@ const productsFormatted = computed(() => {
         Xem lịch sử tích điểm
       </router-link>
     </div>
-  </div>
+  </form>
 
   <!-- End Card Section -->
 </template>
