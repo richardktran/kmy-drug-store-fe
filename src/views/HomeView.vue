@@ -6,7 +6,16 @@ import endpoint from '@/api/resources/endpoint'
 
 const vDebounce = vueDebounce({ lock: true })
 
-const formData = reactive({
+interface OrderInfo {
+  phone_number: string;
+  full_name: {
+    isLoading: boolean; // null: not yet fetch, true: fetching, false: fetched
+    data: string;
+  };
+  amount: number;
+}
+
+const orderInfo: OrderInfo = reactive({
       phone_number: '',
       full_name: {
         isLoading: false,
@@ -18,29 +27,30 @@ const formData = reactive({
 let fullNameFetched = ref('');
 
 const fetchFullName = async () => {
-  if (formData.phone_number.length >= 10) {
-    formData.full_name.isLoading = true;
-    const response = await endpoint.fetchUserByPhone(formData.phone_number);
+  if (orderInfo.phone_number.length >= 10) {
+    orderInfo.full_name.data = '';
+    orderInfo.full_name.isLoading = true;
+    const response = await endpoint.fetchUserByPhone(orderInfo.phone_number);
 
     if (response.status === 200) {
       const data = await response.json();
 
-      console.log(data);
-
       fullNameFetched.value = data.data.full_name;
+      orderInfo.full_name.isLoading = false;
     } else {
       fullNameFetched.value = '';
     }
 
-    formData.full_name.isLoading = false;
+    orderInfo.full_name.isLoading = false;
   }
 }
 
 watch(fullNameFetched, (value) => {
   if (value.length > 0) {
-    formData.full_name.data = value;
+    orderInfo.full_name.data = value;
+    orderInfo.full_name.isLoading = false;
   } else {
-    formData.full_name.data = '';
+    orderInfo.full_name.data = '';
   }
 })
 
@@ -53,7 +63,7 @@ watch(fullNameFetched, (value) => {
         Số điện thoại
       </label>
 
-      <input id="phone_number" type="text" v-model="formData.phone_number" v-debounce:500ms="fetchFullName"
+      <input id="phone_number" type="text" v-model="orderInfo.phone_number" v-debounce:500ms="fetchFullName"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
         placeholder="Nhập số điện thoại">
     </div>
@@ -63,9 +73,10 @@ watch(fullNameFetched, (value) => {
         Tên khách hàng
       </label>
 
-      <input id="full_name" type="text" v-model="formData.full_name.data"
+      <input id="full_name" type="text" v-model="orderInfo.full_name.data"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-        placeholder="Nhập tên khách hàng" :disabled="fullNameFetched.length > 0">
+        :placeholder="orderInfo.full_name.isLoading ? 'Loading...' : 'Nhập tên khách hàng'" 
+        :disabled="fullNameFetched.length > 0">
     </div>
 
     <div class="sm:col-span-9 flex justify-center items-center">
@@ -91,9 +102,9 @@ watch(fullNameFetched, (value) => {
         Tổng tiền
       </label>
 
-      <input id="amount" type="text" v-model="formData.amount"
+      <input id="amount" type="text" v-model="orderInfo.amount"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-        placeholder="Nhập tổng tiền" disabled>
+        placeholder="Nhập tổng tiền">
     </div>
 
     <div class="mt-5 flex justify-center gap-x-2">
