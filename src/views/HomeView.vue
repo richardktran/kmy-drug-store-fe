@@ -1,5 +1,49 @@
 <script setup lang="ts">
 import AddProductModel from '@/components/Home/AddProductModal.vue'
+import { reactive, ref, watch} from 'vue'
+import vueDebounce from 'vue-debounce';
+import endpoint from '@/api/resources/endpoint'
+
+const vDebounce = vueDebounce({ lock: true })
+
+const formData = reactive({
+      phone_number: '',
+      full_name: {
+        isLoading: false,
+        data: '',
+      },
+      amount: 0,
+})
+
+let fullNameFetched = ref('');
+
+const fetchFullName = async () => {
+  if (formData.phone_number.length >= 10) {
+    formData.full_name.isLoading = true;
+    const response = await endpoint.fetchUserByPhone(formData.phone_number);
+
+    if (response.status === 200) {
+      const data = await response.json();
+
+      console.log(data);
+
+      fullNameFetched.value = data.data.full_name;
+    } else {
+      fullNameFetched.value = '';
+    }
+
+    formData.full_name.isLoading = false;
+  }
+}
+
+watch(fullNameFetched, (value) => {
+  if (value.length > 0) {
+    formData.full_name.data = value;
+  } else {
+    formData.full_name.data = '';
+  }
+})
+
 </script>
 
 <template>
@@ -9,7 +53,7 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
         Số điện thoại
       </label>
 
-      <input id="phone_number" type="text"
+      <input id="phone_number" type="text" v-model="formData.phone_number" v-debounce:500ms="fetchFullName"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
         placeholder="Nhập số điện thoại">
     </div>
@@ -19,9 +63,9 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
         Tên khách hàng
       </label>
 
-      <input id="full_name" type="text"
+      <input id="full_name" type="text" v-model="formData.full_name.data"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-        placeholder="Nhập tên khách hàng" disabled>
+        placeholder="Nhập tên khách hàng" :disabled="fullNameFetched.length > 0">
     </div>
 
     <div class="sm:col-span-9 flex justify-center items-center">
@@ -47,7 +91,7 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
         Tổng tiền
       </label>
 
-      <input id="amount" type="text"
+      <input id="amount" type="text" v-model="formData.amount"
         class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
         placeholder="Nhập tổng tiền" disabled>
     </div>
@@ -60,7 +104,8 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
     </div>
 
     <div class="mt-5 flex justify-center gap-x-2">
-      <router-link :to="{ name: 'orders'}" class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+      <router-link :to="{ name: 'orders' }"
+        class="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-full border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
         Xem lịch sử tích điểm
       </router-link>
     </div>
