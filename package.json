@@ -13,7 +13,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "flowbite": "^2.3.0",
     "vue": "^3.4.15",
+    "vue-debounce": "^5.0.0",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
