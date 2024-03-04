@@ -10,6 +10,7 @@ const $toast = useToast({
 })
 
 const orders = ref<OrderData[]>([]);
+const totalAmount = ref(0);
 const isLoading = ref(false);
 
 const fetchOrders = async () => {
@@ -18,8 +19,8 @@ const fetchOrders = async () => {
   const response = await endpoint.fetchOrders();
 
   if (response.ok) {
-    let data = await response.json();
-    data = data.data;
+    let dataResponse = await response.json();
+    let data = dataResponse.data;
 
     const ordersData: OrderData[] = data.map((order: any) => {
       return {
@@ -34,6 +35,7 @@ const fetchOrders = async () => {
     });
 
     orders.value = ordersData;
+    totalAmount.value = dataResponse.meta.data.total
 
   } else {
     $toast.error('Có lỗi xảy ra, vui lòng thử lại!')
@@ -52,7 +54,7 @@ fetchOrders();
       <table  class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <caption
           class="p-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
-          Lịch sử mua hàng
+          Lịch sử mua hàng (Tổng doanh số: {{ totalAmount.toLocaleString('en-US') }} VNĐ)
         </caption>
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
           <tr>
@@ -81,8 +83,11 @@ fetchOrders();
             <td class="px-6 py-4">
               {{ order.phone_number }}
             </td>
-            <td class="px-6 py-4">
+            <td v-if="order.product_name !== '<empty>'" class="px-6 py-4">
               {{ order.product_name }} ({{ order.quantity }} {{ order.product_unit }})
+            </td>
+            <td v-else class="px-6 py-4">
+              Không có thông tin
             </td>
             <td class="px-6 py-4">
               {{ order.amount }} VNĐ
