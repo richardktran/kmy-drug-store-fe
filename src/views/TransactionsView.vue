@@ -13,10 +13,19 @@ const orders = ref<OrderData[]>([]);
 const totalAmount = ref(0);
 const isLoading = ref(false);
 
+// Get phone number query string from URL
+const urlParams = new URLSearchParams(window.location.search);
+const queryPhoneNumber = urlParams.get('phone_number') || '';
+
+
 const fetchOrders = async () => {
   isLoading.value = true;
 
-  const response = await endpoint.fetchOrders();
+  const params = {
+    phone_number: queryPhoneNumber
+  }
+
+  const response = await endpoint.fetchOrders(params);
 
   if (response.ok) {
     let dataResponse = await response.json();

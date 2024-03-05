@@ -37,3 +37,7 @@ export interface OrderData {
   quantity: number,
   created_at: string,
 }
+
+export interface GetOrderParam {
+  phone_number: any
+}
