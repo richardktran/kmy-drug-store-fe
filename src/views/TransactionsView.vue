@@ -21,8 +21,6 @@ const urlParams = new URLSearchParams(window.location.search);
 const queryPhoneNumber = ref(urlParams.get('phone_number') || '');
 
 
-
-
 const fetchOrders = async () => {
   isLoading.value = true;
 
@@ -64,9 +62,8 @@ const fetchOrders = async () => {
 
 // Watch and compute phone number input and bind it to query string phone_number parameter
 watch(queryPhoneNumber, () => {
-  const url = new URL(window.location.href);
-  url.searchParams.set('phone_number', queryPhoneNumber.value);
-  window.history.pushState({}, '', url);
+  // Remove query string from URL
+  window.history.replaceState({}, document.title, window.location.pathname);
 });
 
 
@@ -74,10 +71,6 @@ const fetchOrdersByPhone = async () => {
   if (queryPhoneNumber.value.length >= 10 || queryPhoneNumber.value.length === 0) {
     fetchOrders();
   }
-}
-
-const goBack = () => {
-  window.history.back();
 }
 
 fetchOrders();
@@ -88,7 +81,7 @@ fetchOrders();
   <div class="pt-0 p-4 sm:pt-0 sm:p-7 rounded-xl">
     <div class="flex items-center justify-between mb-4">
       <router-link :to="{ name: 'home' } ">
-        <svg @click="goBack" class="w-[36px] h-[36px] cursor-pointer text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg class="w-[36px] h-[36px] cursor-pointer text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
         </svg>
       </router-link>
@@ -120,7 +113,7 @@ fetchOrders();
                   d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
               </svg>
             </div>
-            <input type="text" id="simple-search" v-model="queryPhoneNumber" v-debounce:500ms="fetchOrdersByPhone"
+            <input type="text" id="phone-search" v-model="queryPhoneNumber" v-debounce:500ms="fetchOrdersByPhone"
               class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               placeholder="Nhập số điện thoại" />
           </div>
