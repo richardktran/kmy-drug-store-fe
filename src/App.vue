@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import '@/assets/banner.jpeg'
 </script>
 
 <template>
@@ -10,7 +11,7 @@ import { RouterView } from 'vue-router'
       <!-- Card -->
       <div class="bg-white rounded-xl shadow dark:bg-slate-900">
         <div
-          class="relative mb-5 h-40 rounded-t-xl bg-[url('https://preline.co/assets/svg/examples/abstract-bg-1.svg')] bg-no-repeat bg-cover bg-center"
+          class="relative mb-5 h-40 w-full rounded-t-xl bg-banner bg-no-repeat bg-contain bg-center"
         ></div>
 
         <!-- Card Section -->
@@ -23,9 +24,9 @@ import { RouterView } from 'vue-router'
               <div class="grid sm:flex sm:items-center justify-center sm:gap-x-5">
                 <div
                   alt="Logo"
-                  class="-mt-16 relative bg-white shadow-lg flex justify-center items-center z-10 size-28 mx-auto sm:mx-0 rounded-full ring-0 dark:ring-gray-800"
+                  class="-mt-8 relative bg-white shadow-lg flex justify-center items-center z-10 size-24 mx-auto sm:mx-0 rounded-full ring-0 dark:ring-gray-800"
                 >
-                  <img src="@/assets/logo.png" alt="Logo" class="size-16" />
+                  <img src="@/assets/logo.png" alt="Logo" class="size-14" />
                 </div>
               </div>
               <RouterView />

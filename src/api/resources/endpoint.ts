@@ -1,5 +1,5 @@
 import { APISettings } from '../config'
-import { type Order, type BasicOrder } from '@/types'
+import { type Order, type BasicOrder, type GetOrderParam } from '@/types'
 
 export default {
   fetchUserByPhone: async (phone: string) => {
@@ -17,8 +17,14 @@ export default {
     })
   },
 
-  fetchOrders: async () => {
-    return await fetch(`${APISettings.API_URL}/admin/orders`, {
+  fetchOrders: async (params: GetOrderParam) => {
+    let query = ''
+
+    if (params.phone_number) {
+      query = `User.phone_number=${params.phone_number}`
+    }
+    
+    return await fetch(`${APISettings.API_URL}/admin/orders?${query}`, {
       method: 'GET',
       headers: APISettings.HEADER
     })
