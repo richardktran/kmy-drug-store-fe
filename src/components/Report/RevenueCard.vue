@@ -8,7 +8,6 @@ const props = defineProps({
   },
   value: {
     type: String,
-    required: true
   },
   percentage: {
     type: String,
@@ -26,7 +25,7 @@ const props = defineProps({
           <h4 class="text-base font-semibold text-gray-800">Doanh thu {{ props.title }}</h4>
         </div>
       </div>
-      <h1 class="text-3xl text-gray-800 my-2.5">{{ parseFloat(props.value).toLocaleString('en-US') }} VNĐ</h1>
+      <h1 class="text-3xl text-gray-800 my-2.5">{{ props.value ? parseFloat(props.value).toLocaleString('en-US'): '0' }} VNĐ</h1>
 
       <hr class="my-3.5">
 
