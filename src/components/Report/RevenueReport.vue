@@ -67,7 +67,7 @@ fetchReports();
       <div class="lg:col-span-3 col-span-12">
         <RevenueCard title="tổng" 
           :value="reports.total_revenue.current?.total.toString()" 
-          :previousValue="0"
+          :previousValue="reports.total_revenue.previous?.total.toString()"
           :percentage="reports.total_revenue.percentage_change.toString()"
         />
       </div>
