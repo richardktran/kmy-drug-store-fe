@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RevenueReport from "@/components/Report/RevenueReport.vue"
 import { ref, watch } from 'vue'
 import { type OrderData } from '@/types'
 import endpoint from '@/api/resources/endpoint';
@@ -98,11 +99,13 @@ fetchOrders();
       </div>
     </div>
 
+    <RevenueReport />
+
     <div>
       <div v-if="!isLoading" class="relative overflow-x-auto shadow-md sm:rounded-lg">
         <div
           class="px-5 text-lg font-semibold text-left rtl:text-right text-gray-900 bg-white dark:text-white dark:bg-gray-800">
-          Lịch sử mua hàng (Tổng doanh số: {{ totalAmount.toLocaleString('en-US') }} VNĐ)
+          Lịch sử mua hàng (Tổng điểm: {{ (totalAmount / 1000).toLocaleString('en-US') }} điểm)
         </div>
         <div class="px-5 py-3">
           <div class="relative max-w-sm">

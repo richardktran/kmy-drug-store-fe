@@ -28,5 +28,12 @@ export default {
       method: 'GET',
       headers: APISettings.HEADER
     })
-  }
+  },
+
+  getRevenueReports: async () => {
+    return await fetch(`${APISettings.API_URL}/reports/revenues`, {
+      method: 'GET',
+      headers: APISettings.HEADER
+    })
+  },
 }
