@@ -67,23 +67,27 @@ fetchReports();
       <div class="lg:col-span-3 col-span-12">
         <RevenueCard title="tổng" 
           :value="reports.total_revenue.current?.total.toString()" 
+          :previousValue="0"
           :percentage="reports.total_revenue.percentage_change.toString()"
         />
       </div>
       <div class="lg:col-span-3 col-span-12">
         <RevenueCard 
           title="năm" 
+          :previousValue="reports.year_revenue.previous?.total.toString()"
           :value="reports.year_revenue.current?.total.toString()" 
           :percentage="reports.year_revenue.percentage_change.toString()"/>
       </div>
       <div class="lg:col-span-3 col-span-12">
         <RevenueCard title="tháng" 
+          :previousValue="reports.month_revenue.previous?.total.toString()"
           :value="reports.month_revenue.current?.total.toString()" 
           :percentage="reports.month_revenue.percentage_change.toString()"
         />
       </div>
       <div class="lg:col-span-3 col-span-12">
         <RevenueCard title="ngày" 
+          :previousValue="reports.day_revenue.previous?.total.toString()"
           :value="reports.day_revenue.current?.total.toString()" 
           :percentage="reports.day_revenue.percentage_change.toString()"
         />

@@ -9,6 +9,9 @@ const props = defineProps({
   value: {
     type: String,
   },
+  previousValue: {
+    type: String,
+  },
   percentage: {
     type: String,
     required: true
@@ -47,7 +50,7 @@ const props = defineProps({
               </svg>
             </div>
             <div class="grow">
-              <h5 class="mt-0 mb-0">{{ parseFloat(props.percentage) }}%</h5>
+              <h5 class="mt-0 mb-0">{{ parseFloat(props.percentage) }}% ({{ props.previousValue ? parseFloat(props.previousValue).toLocaleString('en-US') : '0'}} VNĐ)</h5>
               <p v-if="props.title!=='tổng'" class="text-muted mb-0 fs-13">so với {{ props.title }} trước</p>
               <p v-else class="text-muted mb-0 fs-13">so với tổng chi</p>
             </div>
