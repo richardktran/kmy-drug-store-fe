@@ -144,7 +144,6 @@ const amountFormatted = computed({
     return orderInfo.amount.toLocaleString('en-US')
   },
   set: (value: string) => {
-    console.log(value)
     if (value !== '') {
       orderInfo.amount = parseInt(value.replace(/,/g, ''))
     } else {
