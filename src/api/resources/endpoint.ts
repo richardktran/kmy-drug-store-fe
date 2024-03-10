@@ -9,6 +9,13 @@ export default {
     })
   },
 
+  fetchUserList: async (phoneNumber: string, fullName: string) => {
+    return await fetch(`${APISettings.API_URL}/users/list?phone_number=${phoneNumber}&full_name=${fullName}`, {
+      method: 'GET',
+      headers: APISettings.HEADER
+    })
+  },
+
   storeOrder: async (order: Order | BasicOrder) => {
     return await fetch(`${APISettings.API_URL}/orders`, {
       method: 'POST',
