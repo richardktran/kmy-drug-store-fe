@@ -3,8 +3,10 @@ import AddProductModel from '@/components/Home/AddProductModal.vue'
 import { computed, reactive, ref, watch, watchEffect } from 'vue'
 import vueDebounce from 'vue-debounce'
 import endpoint from '@/api/resources/endpoint'
-import { type OrderInfo, type ProductInfo, type Order, type BasicOrder } from '@/types'
+import { type OrderInfo, type ProductInfo, type Order, type BasicOrder, type UserInfo } from '@/types'
 import { useToast } from 'vue-toast-notification'
+import AutoComplete from 'primevue/autocomplete'
+// import UserInfo from '@/components/Home/UserInfo.vue'
 
 const vDebounce = vueDebounce({ lock: true })
 
@@ -14,10 +16,7 @@ const $toast = useToast({
 
 const orderInit = {
   phone_number: '',
-  full_name: {
-    isLoading: false,
-    data: ''
-  },
+  full_name: '',
   amount: 0
 }
 
@@ -25,7 +24,7 @@ let orderInfo: OrderInfo = reactive({ ...orderInit })
 
 let products = ref<ProductInfo[]>([])
 
-let fullNameFetched = ref('')
+const filteredUsers = ref();
 
 const validateErrors = ref({
   phone_number: '',
@@ -40,7 +39,7 @@ const validate = () => {
     pass = false
   }
 
-  if (orderInfo.full_name.data.length < 1 && fullNameFetched.value.length < 1) {
+  if (orderInfo.full_name.length < 1) {
     validateErrors.value.full_name = 'Tên khách hàng không được để trống'
     pass = false
   }
@@ -64,11 +63,9 @@ const resetValidateErrors = () => {
 const resetAll = () => {
   resetValidateErrors()
   orderInfo.phone_number = ''
-  orderInfo.full_name.data = ''
-  orderInfo.full_name.isLoading = false
+  orderInfo.full_name = ''
   orderInfo.amount = 0
   products.value = []
-  fullNameFetched.value = ''
 
   // reset the form
   const form = document.querySelector('form')
@@ -77,24 +74,44 @@ const resetAll = () => {
   }
 }
 
-const fetchFullName = async () => {
-  if (orderInfo.phone_number.length >= 10) {
-    orderInfo.full_name.data = ''
-    orderInfo.full_name.isLoading = true
-    const response = await endpoint.fetchUserByPhone(orderInfo.phone_number)
+const resetUserInfo = () => {
+  orderInfo.full_name = ''
 
-    if (response.status === 200) {
-      const data = await response.json()
+  orderInfo.phone_number = ''
 
-      fullNameFetched.value = data.data.full_name
-      orderInfo.full_name.isLoading = false
-    } else {
-      fullNameFetched.value = ''
-    }
+}
 
-    orderInfo.full_name.isLoading = false
+const fetchUserList = async (phoneNumber: string, fullName: string) => {
+  const response = await endpoint.fetchUserList(phoneNumber, fullName)
+
+  if (response.status === 200) {
+    const data = await response.json()
+
+    filteredUsers.value = [...data.data];
+
+    return;
   }
 }
+
+const searchPhoneNumber = (event: any) => {
+  setTimeout(async () => {
+    await fetchUserList(event.query, '')
+  }, 500);
+}
+
+const selectUser = (event: any) => {
+  orderInfo.full_name = event.value.full_name
+  orderInfo.phone_number = event.value.phone_number
+}
+
+const searchFullName = (event: any) => {
+  setTimeout(async () => {
+    await fetchUserList('', event.query)
+  }, 500);
+}
+
+
+// Product handlers
 
 const addProduct = (product: ProductInfo) => {
   products.value.push(product)
@@ -103,15 +120,6 @@ const addProduct = (product: ProductInfo) => {
 const removeProduct = (product: ProductInfo) => {
   products.value = products.value.filter((p) => p.name !== product.name)
 }
-
-watch(fullNameFetched, (value) => {
-  if (value.length > 0) {
-    orderInfo.full_name.data = value
-    orderInfo.full_name.isLoading = false
-  } else {
-    orderInfo.full_name.data = ''
-  }
-})
 
 watchEffect(() => {
   if (products.value.length > 0) {
@@ -126,6 +134,8 @@ watchEffect(() => {
   }
 })
 
+// Format handlers
+
 const amountFormatted = computed({
   get: () => {
     if (orderInfo.amount === 0) {
@@ -134,7 +144,11 @@ const amountFormatted = computed({
     return orderInfo.amount.toLocaleString('en-US')
   },
   set: (value: string) => {
-    orderInfo.amount = parseInt(value.replace(/,/g, ''))
+    if (value !== '') {
+      orderInfo.amount = parseInt(value.replace(/,/g, ''))
+    } else {
+      orderInfo.amount = 0
+    }
   }
 })
 
@@ -147,6 +161,9 @@ const productsFormatted = computed(() => {
     }
   })
 })
+
+
+// Submit handlers
 
 const submitOrder = async (order: Order | BasicOrder) => {
   const response = await endpoint.storeOrder(order)
@@ -172,7 +189,7 @@ const storeOrder = async () => {
     products.value.map(async (product) => {
       const order: Order = {
         phone_number: orderInfo.phone_number,
-        full_name: orderInfo.full_name.data,
+        full_name: orderInfo.full_name,
         product_name: product.name,
         quantity: parseInt(product.quantity.toString()),
         unit: product.unit,
@@ -184,7 +201,7 @@ const storeOrder = async () => {
   } else {
     const order: BasicOrder = {
       phone_number: orderInfo.phone_number,
-      full_name: orderInfo.full_name.data,
+      full_name: orderInfo.full_name,
       amount: orderInfo.amount
     }
 
@@ -215,9 +232,24 @@ const storeOrder = async () => {
           Số điện thoại
         </label>
 
-        <input id="phone_number" type="text" v-model="orderInfo.phone_number" v-debounce:500ms="fetchFullName"
-          class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-          placeholder="Nhập số điện thoại" />
+        <AutoComplete 
+          inputClass="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
+          inputId="phone_number" v-model="orderInfo.phone_number" 
+          placeholder="Nhập số điện thoại"
+          :minLength="3"
+          @item-select="selectUser" 
+          optionLabel="phone_number" 
+          :suggestions="filteredUsers" 
+          @complete="searchPhoneNumber"
+          emptySearchMessage="Không tìm thấy số điện thoại"
+        >
+          <template #option="slotProps">
+              <div class="flex align-options-center">
+                <div>{{ slotProps.option.full_name }} | </div>
+                <div class="me-2">&nbsp;{{ slotProps.option.phone_number }}</div>
+              </div>
+          </template>
+        </AutoComplete>
       </div>
       <div v-if="validateErrors.phone_number.length > 0"
         class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
@@ -229,15 +261,35 @@ const storeOrder = async () => {
           Tên khách hàng
         </label>
 
-        <input id="full_name" type="text" v-model="orderInfo.full_name.data"
-          class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-          :placeholder="orderInfo.full_name.isLoading ? 'Loading...' : 'Nhập tên khách hàng'"
-          :disabled="fullNameFetched.length > 0" />
+        <AutoComplete 
+          inputClass="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
+          inputId="phone_number" v-model="orderInfo.full_name" 
+          placeholder="Nhập tên khách hàng"
+          @item-select="selectUser" 
+          optionLabel="full_name" 
+          :suggestions="filteredUsers" 
+          @complete="searchFullName"
+        >
+          <template #option="slotProps">
+              <div class="flex align-options-center">
+                <div>{{ slotProps.option.full_name }} | </div>
+                <div class="me-2">&nbsp;{{ slotProps.option.phone_number }}</div>
+              </div>
+          </template>
+        </AutoComplete>
       </div>
 
       <div v-if="validateErrors.full_name.length > 0"
         class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
         {{ validateErrors.full_name }}
+      </div>
+
+      <div class="mt-5 flex justify-center gap-x-2">
+        <button type="button"
+          @click="resetUserInfo"
+          class="py-2 px-3 inline-flex items-center gap-x-2 text-sm focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+          Nhập lại
+        </button>
       </div>
 
       <div v-if="products.length > 0" class="relative overflow-x-auto">
@@ -283,6 +335,10 @@ const storeOrder = async () => {
           </tbody>
         </table>
       </div>
+
+      <!-- <div class="mb-4">
+        <UserInfo />
+      </div> -->
 
       <div class="sm:col-span-9 flex justify-center items-center">
         <p class="mt-3">

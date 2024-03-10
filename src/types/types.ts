@@ -13,10 +13,7 @@ export interface BasicOrder {
 
 export interface OrderInfo {
   phone_number: string
-  full_name: {
-    isLoading: boolean
-    data: string
-  }
+  full_name: string
   amount: number
 }
 
