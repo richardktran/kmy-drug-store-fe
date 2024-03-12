@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import AddProductModel from '@/components/Home/AddProductModal.vue'
-import { computed, reactive, ref, watch, watchEffect } from 'vue'
-import vueDebounce from 'vue-debounce'
+import { computed, reactive, ref, watchEffect } from 'vue'
 import endpoint from '@/api/resources/endpoint'
-import { type OrderInfo, type ProductInfo, type Order, type BasicOrder, type UserInfo } from '@/types'
+import { type OrderInfo, type ProductInfo, type Order, type BasicOrder } from '@/types'
 import { useToast } from 'vue-toast-notification'
 import AutoComplete from 'primevue/autocomplete'
-// import UserInfo from '@/components/Home/UserInfo.vue'
+import UserScore from '@/components/Home/UserScore.vue'
 
-const vDebounce = vueDebounce({ lock: true })
 
 const $toast = useToast({
   position: 'top'
@@ -19,6 +17,16 @@ const orderInit = {
   full_name: '',
   amount: 0
 }
+
+const scoreInit = {
+  total_score: 0,
+  remain_score: 0,
+  score_used: 0,
+  max_score: 0,
+  isShow: false
+}
+
+const scores = ref({...scoreInit})
 
 let orderInfo: OrderInfo = reactive({ ...orderInit })
 
@@ -67,6 +75,8 @@ const resetAll = () => {
   orderInfo.amount = 0
   products.value = []
 
+  scores.value = { ...scoreInit }
+
   // reset the form
   const form = document.querySelector('form')
   if (form) {
@@ -76,9 +86,8 @@ const resetAll = () => {
 
 const resetUserInfo = () => {
   orderInfo.full_name = ''
-
   orderInfo.phone_number = ''
-
+  scores.value = { ...scoreInit }
 }
 
 const fetchUserList = async (phoneNumber: string, fullName: string) => {
@@ -102,6 +111,13 @@ const searchPhoneNumber = (event: any) => {
 const selectUser = (event: any) => {
   orderInfo.full_name = event.value.full_name
   orderInfo.phone_number = event.value.phone_number
+  scores.value = {
+    remain_score: event.value.remain_score,
+    score_used: event.value.score_used,
+    max_score: event.value.max_score,
+    total_score: event.value.total_score,
+    isShow: true
+  }
 }
 
 const searchFullName = (event: any) => {
@@ -284,6 +300,15 @@ const storeOrder = async () => {
         {{ validateErrors.full_name }}
       </div>
 
+      <div v-if="scores.isShow" class="mb-4">
+        <UserScore 
+          :total_score="scores.total_score"
+          :remain_score="scores.remain_score" 
+          :score_used="scores.score_used" 
+          :max_score="scores.max_score"
+        />
+      </div>
+
       <div class="mt-5 flex justify-center gap-x-2">
         <button type="button"
           @click="resetUserInfo"
@@ -335,10 +360,6 @@ const storeOrder = async () => {
           </tbody>
         </table>
       </div>
-
-      <!-- <div class="mb-4">
-        <UserInfo />
-      </div> -->
 
       <div class="sm:col-span-9 flex justify-center items-center">
         <p class="mt-3">
