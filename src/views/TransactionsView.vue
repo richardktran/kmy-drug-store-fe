@@ -6,6 +6,7 @@ import endpoint from '@/api/resources/endpoint';
 import { useToast } from 'vue-toast-notification'
 import moment from 'moment'
 import vueDebounce from 'vue-debounce';
+import router from "@/router";
 
 const vDebounce = vueDebounce({ lock: true })
 
@@ -20,6 +21,10 @@ const isLoading = ref(false);
 // Get phone number query string from URL
 const urlParams = new URLSearchParams(window.location.search);
 const queryPhoneNumber = ref(urlParams.get('phone_number') || '');
+
+const navigateToHome = (order: OrderData) => {
+  router.push({ name: 'home', query: { phone_number: order.phone_number } })
+}
 
 
 const fetchOrders = async () => {
@@ -81,12 +86,14 @@ fetchOrders();
 <template>
   <div class="pt-0 p-4 sm:pt-0 sm:p-7 rounded-xl">
     <div class="flex items-center justify-between mb-4">
-      <router-link :to="{ name: 'home' } ">
-        <svg class="w-[36px] h-[36px] cursor-pointer text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
+      <router-link :to="{ name: 'home' }">
+        <svg class="w-[36px] h-[36px] cursor-pointer text-gray-800 dark:text-white" aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 12h14M5 12l4-4m-4 4 4 4" />
         </svg>
       </router-link>
-      
+
       <div class="grid sm:flex sm:items-center justify-center sm:gap-x-5">
         <div alt="Logo"
           class="-mt-8 relative bg-white shadow-lg flex justify-center items-center z-10 size-24 mx-auto sm:mx-0 rounded-full ring-0 dark:ring-gray-800">
@@ -143,8 +150,8 @@ fetchOrders();
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(order, key) in orders" :key="key"
-              class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+            <tr v-for="(order, key) in orders" :key="key" @click="navigateToHome(order)"
+              class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer">
               <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                 {{ order.full_name }}
               </th>
