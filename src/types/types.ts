@@ -9,12 +9,14 @@ export interface BasicOrder {
   phone_number: string
   full_name: string | null
   amount: number | string
+  score: number | null
 }
 
 export interface OrderInfo {
   phone_number: string
   full_name: string
-  amount: number
+  amount: number,
+  score: number
 }
 
 export interface ProductInfo {
