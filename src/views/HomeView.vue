@@ -12,6 +12,10 @@ const $toast = useToast({
   position: 'top'
 })
 
+const urlParams = new URLSearchParams(window.location.search);
+
+const queryPhoneNumber = ref(urlParams.get('phone_number') || '');
+
 const orderInit = {
   phone_number: '',
   full_name: '',
@@ -84,6 +88,8 @@ const resetAll = () => {
   if (form) {
     form.reset()
   }
+
+  window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 const resetUserInfo = () => {
@@ -91,6 +97,8 @@ const resetUserInfo = () => {
   orderInfo.phone_number = ''
   orderInfo.score = 0
   scores.value = { ...scoreInit }
+
+  window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 const fetchUserList = async (phoneNumber: string, fullName: string) => {
@@ -103,6 +111,32 @@ const fetchUserList = async (phoneNumber: string, fullName: string) => {
 
     return;
   }
+}
+
+const fetchUserByPhone = async (phoneNumber: string) => {
+  const response = await endpoint.fetchUserByPhone(phoneNumber)
+
+  if (response.status === 200) {
+    const data = await response.json()
+
+    const user = data.data;
+
+    orderInfo.full_name = user.full_name
+    orderInfo.phone_number = user.phone_number
+    scores.value = {
+      remain_score: user.remain_score,
+      score_used: user.score_used,
+      max_score: user.max_score,
+      total_score: user.total_score,
+      isShow: true
+    }
+  }
+
+  return null;
+}
+
+if (queryPhoneNumber.value != '') {
+  fetchUserByPhone(queryPhoneNumber.value)
 }
 
 const searchPhoneNumber = (event: any) => {
@@ -130,7 +164,6 @@ const searchFullName = (event: any) => {
 }
 
 const increaseScore = () => {
-  console.log(orderInfo.score, scores.value.max_score)
   if (orderInfo.score < scores.value.max_score) {
     orderInfo.score += 1
   }
