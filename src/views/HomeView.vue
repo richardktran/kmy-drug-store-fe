@@ -15,7 +15,8 @@ const $toast = useToast({
 const orderInit = {
   phone_number: '',
   full_name: '',
-  amount: 0
+  amount: 0,
+  score: 0,
 }
 
 const scoreInit = {
@@ -26,7 +27,7 @@ const scoreInit = {
   isShow: false
 }
 
-const scores = ref({...scoreInit})
+const scores = ref({ ...scoreInit })
 
 let orderInfo: OrderInfo = reactive({ ...orderInit })
 
@@ -73,6 +74,7 @@ const resetAll = () => {
   orderInfo.phone_number = ''
   orderInfo.full_name = ''
   orderInfo.amount = 0
+  orderInfo.score = 0
   products.value = []
 
   scores.value = { ...scoreInit }
@@ -87,6 +89,7 @@ const resetAll = () => {
 const resetUserInfo = () => {
   orderInfo.full_name = ''
   orderInfo.phone_number = ''
+  orderInfo.score = 0
   scores.value = { ...scoreInit }
 }
 
@@ -124,6 +127,19 @@ const searchFullName = (event: any) => {
   setTimeout(async () => {
     await fetchUserList('', event.query)
   }, 500);
+}
+
+const increaseScore = () => {
+  console.log(orderInfo.score, scores.value.max_score)
+  if (orderInfo.score < scores.value.max_score) {
+    orderInfo.score += 1
+  }
+}
+
+const decreaseScore = () => {
+  if (orderInfo.score > 0) {
+    orderInfo.score -= 1
+  }
 }
 
 
@@ -209,7 +225,8 @@ const storeOrder = async () => {
         product_name: product.name,
         quantity: parseInt(product.quantity.toString()),
         unit: product.unit,
-        amount: parseInt(product.price.toString())
+        amount: parseInt(product.price.toString()),
+        score: orderInfo.score
       }
 
       await submitOrder(order)
@@ -218,7 +235,8 @@ const storeOrder = async () => {
     const order: BasicOrder = {
       phone_number: orderInfo.phone_number,
       full_name: orderInfo.full_name,
-      amount: orderInfo.amount
+      amount: orderInfo.amount,
+      score: orderInfo.score
     }
 
     await submitOrder(order)
@@ -248,22 +266,16 @@ const storeOrder = async () => {
           Số điện thoại
         </label>
 
-        <AutoComplete 
+        <AutoComplete
           inputClass="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-          inputId="phone_number" v-model="orderInfo.phone_number" 
-          placeholder="Nhập số điện thoại"
-          :minLength="3"
-          @item-select="selectUser" 
-          optionLabel="phone_number" 
-          :suggestions="filteredUsers" 
-          @complete="searchPhoneNumber"
-          emptySearchMessage="Không tìm thấy số điện thoại"
-        >
+          inputId="phone_number" v-model="orderInfo.phone_number" placeholder="Nhập số điện thoại" :minLength="3"
+          @item-select="selectUser" optionLabel="phone_number" :suggestions="filteredUsers"
+          @complete="searchPhoneNumber" emptySearchMessage="Không tìm thấy số điện thoại">
           <template #option="slotProps">
-              <div class="flex align-options-center">
-                <div>{{ slotProps.option.full_name }} | </div>
-                <div class="me-2">&nbsp;{{ slotProps.option.phone_number }}</div>
-              </div>
+            <div class="flex align-options-center">
+              <div>{{ slotProps.option.full_name }} | </div>
+              <div class="me-2">&nbsp;{{ slotProps.option.phone_number }}</div>
+            </div>
           </template>
         </AutoComplete>
       </div>
@@ -277,20 +289,16 @@ const storeOrder = async () => {
           Tên khách hàng
         </label>
 
-        <AutoComplete 
+        <AutoComplete
           inputClass="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-          inputId="phone_number" v-model="orderInfo.full_name" 
-          placeholder="Nhập tên khách hàng"
-          @item-select="selectUser" 
-          optionLabel="full_name" 
-          :suggestions="filteredUsers" 
-          @complete="searchFullName"
-        >
+          inputId="phone_number" v-model="orderInfo.full_name" placeholder="Nhập tên khách hàng"
+          @item-select="selectUser" optionLabel="full_name" :suggestions="filteredUsers" @complete="searchFullName">
+
           <template #option="slotProps">
-              <div class="flex align-options-center">
-                <div>{{ slotProps.option.full_name }} | </div>
-                <div class="me-2">&nbsp;{{ slotProps.option.phone_number }}</div>
-              </div>
+            <div class="flex align-options-center">
+              <div>{{ slotProps.option.full_name }} | </div>
+              <div class="me-2">&nbsp;{{ slotProps.option.phone_number }}</div>
+            </div>
           </template>
         </AutoComplete>
       </div>
@@ -301,17 +309,12 @@ const storeOrder = async () => {
       </div>
 
       <div v-if="scores.isShow" class="mb-4">
-        <UserScore 
-          :total_score="scores.total_score"
-          :remain_score="scores.remain_score" 
-          :score_used="scores.score_used" 
-          :max_score="scores.max_score"
-        />
+        <UserScore :total_score="scores.total_score" :remain_score="scores.remain_score" :score_used="scores.score_used"
+          :max_score="scores.max_score" />
       </div>
 
       <div class="mt-5 flex justify-center gap-x-2">
-        <button type="button"
-          @click="resetUserInfo"
+        <button type="button" @click="resetUserInfo"
           class="py-2 px-3 inline-flex items-center gap-x-2 text-sm focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
           Nhập lại
         </button>
@@ -378,6 +381,34 @@ const storeOrder = async () => {
       </div>
 
       <AddProductModel @add-product="addProduct" />
+
+
+      <div v-if="scores.max_score>0" class="max-w-xs">
+        <label for="useScore" class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
+          Tích điểm (Tối đa {{ scores.max_score }} điểm):</label>
+        <div class="relative flex items-center">
+          <button type="button" @click="decreaseScore"
+            class="flex-shrink-0 bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 inline-flex items-center justify-center border border-gray-300 rounded-md h-5 w-5 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none">
+            <svg class="w-2.5 h-2.5 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 18 2">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16" />
+            </svg>
+          </button>
+          <input type="text" v-model="orderInfo.score"
+            id="useScore" data-input-counter
+            class="mx-1 flex-shrink-0 text-gray-900 dark:text-white border-0 bg-transparent text-sm font-normal focus:outline-none focus:ring-0 max-w-[2.5rem] text-center"
+            placeholder="" required />
+          <button type="button" @click="increaseScore"
+            class="flex-shrink-0 bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 inline-flex items-center justify-center border border-gray-300 rounded-md h-5 w-5 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none">
+            <svg class="w-2.5 h-2.5 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 18 18">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 1v16M1 9h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
 
       <div class="space-y-2 mb-4">
         <label for="amount" class="inline-block text-sm font-medium text-gray-800 mt-2.5 dark:text-gray-200">
