@@ -7,6 +7,9 @@ import { useToast } from 'vue-toast-notification'
 import moment from 'moment'
 import vueDebounce from 'vue-debounce';
 import router from "@/router";
+import Dialog from 'primevue/dialog';
+import InputText from "primevue/inputtext";
+import Button from 'primevue/button';
 
 const vDebounce = vueDebounce({ lock: true })
 
@@ -17,6 +20,7 @@ const $toast = useToast({
 const orders = ref<OrderData[]>([]);
 const totalAmount = ref(0);
 const isLoading = ref(false);
+const orderOptionsVisible = ref(false);
 
 // Get phone number query string from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -107,6 +111,21 @@ fetchOrders();
     </div>
 
     <RevenueReport />
+    <Dialog v-model:visible="orderOptionsVisible" modal header="Edit Profile" :style="{ width: '25rem' }">
+      <span class="p-text-secondary block mb-5">Update your information.</span>
+      <div class="flex align-items-center gap-3 mb-3">
+        <label for="username" class="font-semibold w-6rem">Username</label>
+        <InputText id="username" class="flex-auto" autocomplete="off" />
+      </div>
+      <div class="flex align-items-center gap-3 mb-5">
+        <label for="email" class="font-semibold w-6rem">Email</label>
+        <InputText id="email" class="flex-auto" autocomplete="off" />
+      </div>
+      <div class="flex justify-content-end gap-2">
+        <Button type="button" label="Cancel" severity="secondary" @click="orderOptionsVisible = false"></Button>
+        <Button type="button" label="Save" @click="orderOptionsVisible = false"></Button>
+      </div>
+    </Dialog>
 
     <div>
       <div v-if="!isLoading" class="relative overflow-x-auto shadow-md sm:rounded-lg">
@@ -150,7 +169,7 @@ fetchOrders();
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(order, key) in orders" :key="key" @click="navigateToHome(order)"
+            <tr v-for="(order, key) in orders" :key="key" @click="orderOptionsVisible = true"
               class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 cursor-pointer">
               <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                 {{ order.full_name }}
@@ -176,9 +195,6 @@ fetchOrders();
         </table>
 
         <!-- Table skeleton -->
-
-
-
       </div>
 
 

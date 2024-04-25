@@ -6,6 +6,8 @@ import { type OrderInfo, type ProductInfo, type Order, type BasicOrder } from '@
 import { useToast } from 'vue-toast-notification'
 import AutoComplete from 'primevue/autocomplete'
 import UserScore from '@/components/Home/UserScore.vue'
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext'
 
 
 const $toast = useToast({
@@ -303,7 +305,9 @@ const storeOrder = async () => {
           inputClass="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
           inputId="phone_number" v-model="orderInfo.phone_number" placeholder="Nhập số điện thoại" :minLength="3"
           @item-select="selectUser" optionLabel="phone_number" :suggestions="filteredUsers"
-          @complete="searchPhoneNumber" emptySearchMessage="Không tìm thấy số điện thoại">
+          @complete="searchPhoneNumber" emptySearchMessage="Không tìm thấy số điện thoại"
+          class="block"
+        >
           <template #option="slotProps">
             <div class="flex align-options-center">
               <div>{{ slotProps.option.full_name }} | </div>
@@ -325,8 +329,9 @@ const storeOrder = async () => {
         <AutoComplete
           inputClass="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
           inputId="phone_number" v-model="orderInfo.full_name" placeholder="Nhập tên khách hàng"
-          @item-select="selectUser" optionLabel="full_name" :suggestions="filteredUsers" @complete="searchFullName">
-
+          @item-select="selectUser" optionLabel="full_name" :suggestions="filteredUsers" @complete="searchFullName"
+          class="block"
+        >
           <template #option="slotProps">
             <div class="flex align-options-center">
               <div>{{ slotProps.option.full_name }} | </div>
@@ -347,13 +352,10 @@ const storeOrder = async () => {
       </div>
 
       <div class="mt-5 flex justify-center gap-x-2">
-        <button type="button" @click="resetUserInfo"
-          class="py-2 px-3 inline-flex items-center gap-x-2 text-sm focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
-          Nhập lại
-        </button>
+        <Button label="Nhập lại" class="text-sm" severity="danger" @click="resetUserInfo" />
       </div>
 
-      <div v-if="products.length > 0" class="relative overflow-x-auto">
+      <!-- <div v-if="products.length > 0" class="relative overflow-x-auto">
         <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
@@ -411,12 +413,12 @@ const storeOrder = async () => {
             Thêm thuốc
           </button>
         </p>
-      </div>
+      </div> -->
 
       <AddProductModel @add-product="addProduct" />
 
 
-      <div v-if="scores.max_score>0" class="max-w-xs">
+      <div v-if="scores.max_score > 0" class="max-w-xs">
         <label for="useScore" class="block mb-1 text-sm font-medium text-gray-900 dark:text-white">
           Tích điểm (Tối đa {{ scores.max_score }} điểm):</label>
         <div class="relative flex items-center">
@@ -427,8 +429,7 @@ const storeOrder = async () => {
               <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16" />
             </svg>
           </button>
-          <input type="text" v-model="orderInfo.score"
-            id="useScore" data-input-counter
+          <input type="text" v-model="orderInfo.score" id="useScore" data-input-counter
             class="mx-1 flex-shrink-0 text-gray-900 dark:text-white border-0 bg-transparent text-sm font-normal focus:outline-none focus:ring-0 max-w-[2.5rem] text-center"
             placeholder="" required />
           <button type="button" @click="increaseScore"
@@ -448,9 +449,18 @@ const storeOrder = async () => {
           Tổng tiền
         </label>
 
-        <input id="amount" type="text" v-model="amountFormatted"
+        <!-- <input id="amount" type="text" v-model="amountFormatted"
           class="py-2 px-3 pe-11 block w-full border-gray-200 shadow-sm rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-slate-900 dark:border-gray-700 dark:text-gray-400 dark:focus:ring-gray-600"
-          placeholder="Nhập tổng tiền" :disabled="products.length > 0" />
+          placeholder="Nhập tổng tiền" :disabled="products.length > 0" /> -->
+
+        <InputText 
+          id="amount" 
+          class="block w-full text-sm"
+          type="text" 
+          v-model="amountFormatted" 
+          placeholder="Nhập tổng tiền" 
+          :disabled="products.length > 0" 
+        />
       </div>
 
       <div v-if="validateErrors.amount.length > 0"
@@ -459,10 +469,7 @@ const storeOrder = async () => {
       </div>
 
       <div class="mt-5 flex justify-center gap-x-2">
-        <button type="submit"
-          class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
-          Tích điểm
-        </button>
+        <Button type="submit" class="text-sm" label="Tích điểm" />
       </div>
 
       <div class="mt-5 flex justify-center gap-x-2">
