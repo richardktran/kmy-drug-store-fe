@@ -227,6 +227,19 @@ const productsFormatted = computed(() => {
   })
 })
 
+const accumulateScore = async () => {
+  const response = await endpoint.accumulateScore(orderInfo.phone_number)
+  if (response.status === 200) {
+    $toast.success('Tích điểm thành công 🎉')
+    resetAll()
+  } else if (response.status === 500) {
+    $toast.error('Có lỗi xảy ra, vui lòng thử lại!')
+  } else {
+    const data = await response.json()
+    $toast.error(data.message.message)
+  }
+}
+
 
 // Submit handlers
 
@@ -347,6 +360,10 @@ const storeOrder = async () => {
       </div>
 
       <div class="mt-5 flex justify-center gap-x-2">
+        <button v-if="scores.max_score > 0" type="button" @click="accumulateScore"
+          class="py-2 px-3 inline-flex items-center gap-x-2 text-sm focus:outline-none text-white bg-blue-500 hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900">
+          Trả điểm
+        </button>
         <button type="button" @click="resetUserInfo"
           class="py-2 px-3 inline-flex items-center gap-x-2 text-sm focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
           Nhập lại
@@ -397,7 +414,7 @@ const storeOrder = async () => {
         </table>
       </div>
 
-      <div class="sm:col-span-9 flex justify-center items-center">
+      <!-- <div class="sm:col-span-9 flex justify-center items-center">
         <p class="mt-3">
           <button data-modal-target="add-product-modal" data-modal-toggle="add-product-modal" type="button"
             class="inline-flex items-center gap-x-1 text-sm text-blue-600 decoration-2 hover:underline font-medium dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
@@ -413,7 +430,7 @@ const storeOrder = async () => {
         </p>
       </div>
 
-      <AddProductModel @add-product="addProduct" />
+      <AddProductModel @add-product="addProduct" /> -->
 
 
       <div v-if="scores.max_score>0" class="max-w-xs">

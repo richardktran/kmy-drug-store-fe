@@ -43,4 +43,12 @@ export default {
       headers: APISettings.HEADER
     })
   },
+
+  accumulateScore: async (phoneNumber: string) => {
+    return await fetch(`${APISettings.API_URL}/users/accumulate-score`, {
+      method: 'POST',
+      headers: APISettings.HEADER,
+      body: JSON.stringify({ phone_number: phoneNumber })
+    })
+  }
 }
